@@ -22,7 +22,7 @@
 )
 
 (defrule  right-with-box
-	?f1 <- (robot ?y ?x $?aux1 box ?y ?xb $?aux2 level ?lvl)
+	?f1 <- (robot ?y ?x $?aux1 box ?y ?xb $?aux2 movement ?mv level ?lvl)
 	(grid_dimension ?yd ?xd)
 	(max-depth ?prof)
 	
