@@ -7,13 +7,12 @@
 ;;=============MOVEMENT RIGHT=================
 (defrule right-no-box
 	?f1 <- (robot ?y ?x $?aux movement ?mv level ?lvl) 
-	(obstacle ?yo ?xo)	
 	(grid_dimension ?yd ?xd)
 	(max-depth ?prof)
 	
 	(test (not(member (create$ warehouse ?y (+ ?x 1)) $?aux)))
 	(test (not(member (create$ box ?y (+ ?x 1)) $?aux)))
-	(test (or (<> ?y ?yo ) (<> (+ ?x 1) ?xo)))
+	(not (obstacle ?y =(+ ?x 1)))
 	(test (< ?x ?xd))
 	(test (< ?lvl ?prof))
 	(test (neq ?mv left))
@@ -24,15 +23,14 @@
 
 (defrule  right-with-box
 	?f1 <- (robot ?y ?x $?aux1 box ?y ?xb $?aux2 level ?lvl)
-	(obstacle ?yo ?xo)
 	(grid_dimension ?yd ?xd)
 	(max-depth ?prof)
 	
 	(test (= (+ ?x 1) ?xb))
 	(test (not (member (create$ box ?y (+ ?x 2)) $?aux1)))
 	(test (not (member (create$ box ?y (+ ?x 2)) $?aux2))) 
-	(test (not(member (create$ warehouse ?y (+ ?x 2)) $?aux1)))
-	(test (or (<> ?y ?yo ) (<> (+ ?x 2) ?xo)))
+	(test (not (member (create$ warehouse ?y (+ ?x 2)) $?aux1)))
+	(not (obstacle ?y =(+ ?x 2)))
 	(test (< (+ ?x 1) ?xd))
 	(test (< ?lvl ?prof))
    =>
@@ -41,32 +39,75 @@
 )
 
 (defrule right-insert-box
+	(declare (salience 50))
 	?f1 <- (robot ?y ?x $?aux1 warehouse ?y ?xw ?cw $?aux2 box ?y ?xb  $?aux3 movement ?mv level ?lvl)
-	(obstacle ?yo ?xo)
-	(grid_dimension ?yd ?xd)
 	(max-depth ?prof)
 	(warehouse_capacity ?cap)	
 
 	(test (= (+ ?x 1) ?xb))
 	(test (= (+ ?x 2) ?xw))
 	(test (< ?cw ?cap))
-	(test (< (+ ?x 1) ?xd))
 	(test (< ?lvl ?prof))
    =>
 	(assert (robot ?y (+ ?x 1 ) $?aux1 warehouse ?y ?xw (+ ?cw 1) $?aux2 $?aux3 movement null level (+ ?lvl 1)))
 	(bind ?*nod-gen* (+ ?*nod-gen* 1))
 )
 
+;;=============MOVEMENT LEFT=================
+(defrule left-no-box
+	?f1 <- (robot ?y ?x $?aux movement ?mv level ?lvl) 
+	(max-depth ?prof)
+	
+	(test (not (member (create$ warehouse ?y (- ?x 1)) $?aux)))
+	(test (not (member (create$ box ?y (- ?x 1)) $?aux)))
+	(not (obstacle ?y =(- ?x 1)))
+	(test (neq ?mv right))
+	(test (> ?x 1))
+	(test (< ?lvl ?prof))
+   =>
+	(assert (robot ?y (- ?x 1 ) $?aux movement left level (+ ?lvl 1)))
+	(bind ?*nod-gen* (+ ?*nod-gen* 1))
+)
+
+(defrule  left-with-box
+	?f1 <- (robot ?y ?x $?aux1 box ?y ?xb $?aux2 movement ?mv level ?lvl)
+	(max-depth ?prof)
+	
+	(test (eq (- ?x 1) ?xb)) 
+	(test (not (member (create$ box ?y (- ?x 2)) $?aux1)))
+	(test (not (member (create$ box ?y (- ?x 2)) $?aux2))) 
+	(test (not (member (create$ warehouse ?y (- ?x 2)) $?aux1)))
+	(not (obstacle ?y =(- ?x 2)))
+	(test (> ?x 2))
+	(test (< ?lvl ?prof))
+   =>
+	(assert (robot ?y (- ?x 1 ) $?aux1 box ?y (- ?xb 1) $?aux2 movement null level (+ ?lvl 1)))
+	(bind ?*nod-gen* (+ ?*nod-gen* 1))
+)
+
+(defrule left-insert-box
+	(declare (salience 50))
+	?f1 <- (robot ?y ?x $?aux1 warehouse ?y ?xw ?cw $?aux2 box ?y ?xb  $?aux3 movement ?mv level ?lvl)
+	(max-depth ?prof)
+	(warehouse_capacity ?cap)	
+
+	(test (= (- ?x 1) ?xb))
+	(test (= (- ?x 2) ?xw))
+	(test (< ?cw ?cap))
+	(test (< ?lvl ?prof))
+   =>
+	(assert (robot ?y (- ?x 1 ) $?aux1 warehouse ?y ?xw (+ ?cw 1) $?aux2 $?aux3 movement null level (+ ?lvl 1)))
+	(bind ?*nod-gen* (+ ?*nod-gen* 1))
+)
+
 ;;==============MOVEMENT UP==================
 (defrule up-no-box
 	?f1 <- (robot ?y ?x $?aux movement ?mv level ?lvl) 
-	(obstacle ?yo ?xo)	
-	(grid_dimension ?yd ?xd)
 	(max-depth ?prof)
 	
-	(test (not(member (create$ warehouse (- ?y 1)  ?x ) $?aux)))
-	(test (not(member (create$ box (- ?y 1) ?x ) $?aux)))
-	(test (or (<> (- ?y 1) ?yo ) (<> ?x ?xo)))
+	(test (not (member (create$ warehouse (- ?y 1)  ?x ) $?aux)))
+	(test (not (member (create$ box (- ?y 1) ?x ) $?aux)))
+	(not (obstacle =(- ?y 1) ?x))
 	(test (> ?y 1))
 	(test (< ?lvl ?prof))
 	(test (neq ?mv down)) 
@@ -77,15 +118,13 @@
 
 (defrule  up-with-box
 	?f1 <- (robot ?y ?x $?aux1 box ?yb ?x $?aux2 movement ?mv level ?lvl)
-	(obstacle ?yo ?xo)
-	(grid_dimension ?yd ?xd)
 	(max-depth ?prof)
 	
 	(test (= (- ?y 1) ?yb))
 	(test (not (member (create$ box (- ?y 2) ?x) $?aux1)))
 	(test (not (member (create$ box (- ?y 2)  ?x ) $?aux2))) 
-	(test (not(member (create$ warehouse (- ?y 2) ?x) $?aux1)))
-	(test (or (<> (- ?y 2) ?yo ) (<> ?x ?xo)))
+	(test (not (member (create$ warehouse (- ?y 2) ?x) $?aux1)))
+	(not (obstacle =(- ?y 2) ?x))
 	(test (> (- ?y 1) 1))
 	(test (< ?lvl ?prof))
    =>
@@ -94,21 +133,69 @@
 )
 
 (defrule up-insert-box
+	(declare (salience 50))
 	?f1 <- (robot ?y ?x $?aux1 warehouse ?yw ?x ?cw $?aux2 box ?yb ?x  $?aux3 movement ?mv level ?lvl)
-	(obstacle ?yo ?xo)
-	(grid_dimension ?yd ?xd)
 	(max-depth ?prof)
 	(warehouse_capacity ?cap)	
 
 	(test (= (- ?y 1) ?yb))
-	(test (= (- ?x 2) ?yw))
+	(test (= (- ?y 2) ?yw))
 	(test (< ?cw ?cap))
-	(test (> (- ?y 1) 1))
 	(test (< ?lvl ?prof))
    =>
 	(assert (robot (- ?y 1) ?x $?aux1 warehouse ?yw ?x (+ ?cw 1) $?aux2 $?aux3 movement null level (+ ?lvl 1)))
 	(bind ?*nod-gen* (+ ?*nod-gen* 1))
 )
+
+;;==============MOVEMENT DOWN==================
+(defrule down-no-box
+	?f1 <- (robot ?y ?x $?aux movement ?mv level ?lvl) 
+	(grid_dimension ?yd ?xd)
+	(max-depth ?prof)
+	
+	(test (not (member (create$ warehouse (+ ?y 1)  ?x ) $?aux)))
+	(test (not (member (create$ box (+ ?y 1) ?x ) $?aux)))
+	(not (obstacle =(+ ?y 1) ?x))
+	(test (neq  ?mv up))
+	(test (< ?y  ?yd ))
+	(test (< ?lvl ?prof))
+   =>
+	(assert (robot (+ ?y 1) ?x $?aux movement down level (+ ?lvl 1)))
+	(bind ?*nod-gen* (+ ?*nod-gen* 1))
+)
+
+(defrule  down-with-box
+	?f1 <- (robot ?y ?x $?aux1 box ?yb ?x $?aux2 movement ?mv level ?lvl)
+	(grid_dimension ?yd ?xd)
+	(max-depth ?prof)
+	
+	(test (= (+ ?y 1) ?yb))
+	(test (not (member (create$ box (+ ?y 2) ?x) $?aux1)))
+	(test (not (member (create$ box (+ ?y 2)  ?x ) $?aux2))) 
+	(test (not (member (create$ warehouse (+ ?y 2) ?x) $?aux1)))
+	(not (obstacle =(+ ?y 2) ?x))
+	(test (< ?y (- ?yd 1))) 
+	(test (< ?lvl ?prof))
+   =>
+	(assert (robot (+ ?y 1) ?x $?aux1 box (+ ?yb 1) ?x $?aux2 movement null level (+ ?lvl 1)))
+	(bind ?*nod-gen* (+ ?*nod-gen* 1))
+)
+
+(defrule down-insert-box
+	(declare (salience 50))
+	?f1 <- (robot ?y ?x $?aux1 warehouse ?yw ?x ?cw $?aux2 box ?yb ?x  $?aux3 movement ?mv level ?lvl)
+	(max-depth ?prof)
+	(warehouse_capacity ?cap)	
+
+	(test (= (+ ?y 1) ?yb))
+	(test (= (+ ?y 2) ?yw))
+	(test (< ?cw ?cap))
+	(test (< ?lvl ?prof))
+   =>
+	(assert (robot (+ ?y 1) ?x $?aux1 warehouse ?yw ?x (+ ?cw 1) $?aux2 $?aux3 movement null level (+ ?lvl 1)))
+	(bind ?*nod-gen* (+ ?*nod-gen* 1))
+)
+
 
 ;;==============DEFAULT=================
 
@@ -125,7 +212,7 @@
 	(halt)
 )
 
-(defrule no_SOLUTION
+(defrule no_solution
 	(declare (salience -99))
 	(robot $?all level ?lvl)
    =>
@@ -148,9 +235,15 @@
 	       else   (set-strategy depth))
         (printout t " Execute run to start the program " crlf)
 	(assert (warehouse_capacity 1))
-	(assert (grid_dimension 5 10))
+	(assert (grid_dimension 5 8))
 	(assert (obstacle 3 1))
-	(assert (robot 4 1 warehouse 4 8 0 warehouse 1 10 0 box 1 9 box 4 4 movement null level 0)) 
+	(assert (obstacle 1 4))
+	(assert (obstacle 3 4))
+	(assert (obstacle 4 4))
+	(assert (obstacle 5 4))
+	(assert (obstacle 3 5))
+	(assert (obstacle 3 8))
+	(assert (robot 4 1 warehouse 1 7 0 warehouse 4 5 0 warehouse 5 5 0 box 4 3 box 2 2 box 2 6 movement null level 0)) 
 	(assert (max-depth ?prof))
 
 )
