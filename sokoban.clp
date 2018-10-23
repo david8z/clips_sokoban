@@ -7,12 +7,13 @@
 ;;=============MOVEMENT RIGHT=================
 (defrule right-no-box
 	?f1 <- (robot ?y ?x $?aux movement ?mv level ?lvl) 
+	(obstacles: $?obs)
 	(grid_dimension ?yd ?xd)
 	(max-depth ?prof)
 	
-	(test (not(member (create$ warehouse ?y (+ ?x 1)) $?aux)))
-	(test (not(member (create$ box ?y (+ ?x 1)) $?aux)))
-	(not (obstacle ?y =(+ ?x 1)))
+	(test (not (member (create$ warehouse ?y (+ ?x 1)) $?aux)))
+	(test (not (member (create$ box ?y (+ ?x 1)) $?aux)))
+	(test (not (member (create$ obstacle ?y (+ ?x 1)) $?obs)))
 	(test (< ?x ?xd))
 	(test (< ?lvl ?prof))
 	(test (neq ?mv left))
@@ -22,7 +23,9 @@
 )
 
 (defrule  right-with-box
+	(declare (salience 25))
 	?f1 <- (robot ?y ?x $?aux1 box ?y ?xb $?aux2 movement ?mv level ?lvl)
+	(obstacles: $?obs)
 	(grid_dimension ?yd ?xd)
 	(max-depth ?prof)
 	
@@ -30,7 +33,7 @@
 	(test (not (member (create$ box ?y (+ ?x 2)) $?aux1)))
 	(test (not (member (create$ box ?y (+ ?x 2)) $?aux2))) 
 	(test (not (member (create$ warehouse ?y (+ ?x 2)) $?aux1)))
-	(not (obstacle ?y =(+ ?x 2)))
+	(test (not (member (create$ obstacle ?y (+ ?x 2)) $?obs)))
 	(test (< (+ ?x 1) ?xd))
 	(test (< ?lvl ?prof))
    =>
@@ -56,11 +59,12 @@
 ;;=============MOVEMENT LEFT=================
 (defrule left-no-box
 	?f1 <- (robot ?y ?x $?aux movement ?mv level ?lvl) 
+	(obstacles: $?obs)
 	(max-depth ?prof)
 	
 	(test (not (member (create$ warehouse ?y (- ?x 1)) $?aux)))
 	(test (not (member (create$ box ?y (- ?x 1)) $?aux)))
-	(not (obstacle ?y =(- ?x 1)))
+	(test (not (member (create$ obstacle ?y (- ?x 1)) $?obs)))
 	(test (neq ?mv right))
 	(test (> ?x 1))
 	(test (< ?lvl ?prof))
@@ -70,14 +74,16 @@
 )
 
 (defrule  left-with-box
+	(declare (salience 25))
 	?f1 <- (robot ?y ?x $?aux1 box ?y ?xb $?aux2 movement ?mv level ?lvl)
+	(obstacles: $?obs)
 	(max-depth ?prof)
 	
 	(test (eq (- ?x 1) ?xb)) 
 	(test (not (member (create$ box ?y (- ?x 2)) $?aux1)))
 	(test (not (member (create$ box ?y (- ?x 2)) $?aux2))) 
 	(test (not (member (create$ warehouse ?y (- ?x 2)) $?aux1)))
-	(not (obstacle ?y =(- ?x 2)))
+	(test (not (member (create$ obstacle ?y (- ?x 2)) $?obs)))
 	(test (> ?x 2))
 	(test (< ?lvl ?prof))
    =>
@@ -103,11 +109,12 @@
 ;;==============MOVEMENT UP==================
 (defrule up-no-box
 	?f1 <- (robot ?y ?x $?aux movement ?mv level ?lvl) 
+	(obstacles: $?obs)
 	(max-depth ?prof)
 	
 	(test (not (member (create$ warehouse (- ?y 1)  ?x ) $?aux)))
 	(test (not (member (create$ box (- ?y 1) ?x ) $?aux)))
-	(not (obstacle =(- ?y 1) ?x))
+	(test (not (member (create$ obstacle (- ?y 1) ?x) $?obs)))
 	(test (> ?y 1))
 	(test (< ?lvl ?prof))
 	(test (neq ?mv down)) 
@@ -117,14 +124,16 @@
 )
 
 (defrule  up-with-box
+	(declare (salience 25))
 	?f1 <- (robot ?y ?x $?aux1 box ?yb ?x $?aux2 movement ?mv level ?lvl)
+	(obstacles: $?obs)	
 	(max-depth ?prof)
 	
 	(test (= (- ?y 1) ?yb))
 	(test (not (member (create$ box (- ?y 2) ?x) $?aux1)))
 	(test (not (member (create$ box (- ?y 2)  ?x ) $?aux2))) 
 	(test (not (member (create$ warehouse (- ?y 2) ?x) $?aux1)))
-	(not (obstacle =(- ?y 2) ?x))
+	(test (not (member (create$ obstacle (- ?y 2) ?x) $?obs)))
 	(test (> (- ?y 1) 1))
 	(test (< ?lvl ?prof))
    =>
@@ -150,12 +159,13 @@
 ;;==============MOVEMENT DOWN==================
 (defrule down-no-box
 	?f1 <- (robot ?y ?x $?aux movement ?mv level ?lvl) 
+	(obstacles: $?obs)
 	(grid_dimension ?yd ?xd)
 	(max-depth ?prof)
 	
 	(test (not (member (create$ warehouse (+ ?y 1)  ?x ) $?aux)))
 	(test (not (member (create$ box (+ ?y 1) ?x ) $?aux)))
-	(not (obstacle =(+ ?y 1) ?x))
+	(test (not (member (create$ obstacle (+ ?y 1) ?x) $?obs)))
 	(test (neq  ?mv up))
 	(test (< ?y  ?yd ))
 	(test (< ?lvl ?prof))
@@ -165,7 +175,9 @@
 )
 
 (defrule  down-with-box
+	(declare (salience 25))
 	?f1 <- (robot ?y ?x $?aux1 box ?yb ?x $?aux2 movement ?mv level ?lvl)
+	(obstacles: $?obs)
 	(grid_dimension ?yd ?xd)
 	(max-depth ?prof)
 	
@@ -173,7 +185,7 @@
 	(test (not (member (create$ box (+ ?y 2) ?x) $?aux1)))
 	(test (not (member (create$ box (+ ?y 2)  ?x ) $?aux2))) 
 	(test (not (member (create$ warehouse (+ ?y 2) ?x) $?aux1)))
-	(not (obstacle =(+ ?y 2) ?x))
+	(test (not (member (create$ obstacle (+ ?y 2) ?x) $?obs)))
 	(test (< ?y (- ?yd 1))) 
 	(test (< ?lvl ?prof))
    =>
@@ -236,13 +248,7 @@
         (printout t " Execute run to start the program " crlf)
 	(assert (warehouse_capacity 1))
 	(assert (grid_dimension 5 8))
-	(assert (obstacle 3 1))
-	(assert (obstacle 1 4))
-	(assert (obstacle 3 4))
-	(assert (obstacle 4 4))
-	(assert (obstacle 5 4))
-	(assert (obstacle 3 5))
-	(assert (obstacle 3 8))
+	(assert (obstacles: obstacle 3 1 obstacle 1 4 obstacle 3 4 obstacle 4 4 obstacle 5 4 obstacle 3 5 obstacle 3 8))
 	(assert (robot 4 1 warehouse 1 7 0 warehouse 4 5 0 warehouse 5 5 0 box 4 3 box 2 2 box 2 6 movement null level 0)) 
 	(assert (max-depth ?prof))
 
