@@ -33,7 +33,7 @@ git clone https://github.com/david8z/clips_sokoban.git
 Then run the program using the clips interpreter.
 
 ```bash 
-clips -f sokoban.clp
+clips -f sokoban2.clp
 
 CLIPS> (start)
 
@@ -41,3 +41,9 @@ CLIPS> (run)
 ```
 
 _It is recommended to use (watch facts) inside clips for an easier interpretation._
+
+---
+
+#### WARNING
+
+Problems might be experienced when running on branch mode in linux. This is due to clips package.
